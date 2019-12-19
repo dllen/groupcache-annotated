@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//集群
 // peers.go defines how processes find and communicate with their peers.
 
 package groupcache

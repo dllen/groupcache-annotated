@@ -181,8 +181,9 @@ type flightGroup interface {
 }
 
 // Stats are per-group statistics.
+//带原子性去统计缓存组 统计信息
 type Stats struct {
-	Gets           AtomicInt // any Get request, including from peers
+	Gets           AtomicInt //一次获取缓存的请求 any Get request, including from peers
 	CacheHits      AtomicInt // either cache was good
 	PeerLoads      AtomicInt // either remote load or remote cache hit (not an error)
 	PeerErrors     AtomicInt
@@ -204,12 +205,15 @@ func (g *Group) initPeers() {
 	}
 }
 
+//获取缓存
 func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	g.peersOnce.Do(g.initPeers)
 	g.Stats.Gets.Add(1)
 	if dest == nil {
 		return errors.New("groupcache: nil dest Sink")
 	}
+
+	//从mainCache或hotCache去换取数据
 	value, cacheHit := g.lookupCache(key)
 
 	if cacheHit {
@@ -221,6 +225,7 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	// track of whether the dest was already populated. One caller
 	// (if local) will set this; the losers will not. The common
 	// case will likely be one caller.
+	//从集群或者本地中去获取
 	destPopulated := false
 	value, destPopulated, err := g.load(ctx, key, dest)
 	if err != nil {
@@ -292,6 +297,7 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
 	return
 }
 
+//getLocally- 从本地获取缓存
 func (g *Group) getLocally(ctx Context, key string, dest Sink) (ByteView, error) {
 	err := g.getter.Get(ctx, key, dest)
 	if err != nil {
@@ -300,6 +306,7 @@ func (g *Group) getLocally(ctx Context, key string, dest Sink) (ByteView, error)
 	return dest.view()
 }
 
+//getFromPeer- 从远端获取缓存
 func (g *Group) getFromPeer(ctx Context, peer ProtoGetter, key string) (ByteView, error) {
 	req := &pb.GetRequest{
 		Group: &g.name,

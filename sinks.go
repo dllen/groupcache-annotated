@@ -22,6 +22,9 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+/*
+ *存储cache的多种方式
+ */
 // A Sink receives data from a Get call.
 //
 // Implementation of Getter must call exactly one of the Set methods
@@ -48,6 +51,7 @@ func cloneBytes(b []byte) []byte {
 	return c
 }
 
+//给dest赋值
 func setSinkView(s Sink, v ByteView) error {
 	// A viewSetter is a Sink that can also receive its value from
 	// a ByteView. This is a fast path to minimize copies when the

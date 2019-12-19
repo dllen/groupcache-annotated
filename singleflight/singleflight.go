@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//请求并发器
 // Package singleflight provides a duplicate function call suppression
 // mechanism.
 package singleflight

@@ -30,6 +30,8 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+//http请求其他节点数据
+
 const defaultBasePath = "/_groupcache/"
 
 const defaultReplicas = 50
