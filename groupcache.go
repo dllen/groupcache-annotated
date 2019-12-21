@@ -213,9 +213,10 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 		return errors.New("groupcache: nil dest Sink")
 	}
 
-	//从mainCache或hotCache去换取数据
+	//查找本地缓存,包括mainCache和hotCache
 	value, cacheHit := g.lookupCache(key)
 
+	//命中直接返回
 	if cacheHit {
 		g.Stats.CacheHits.Add(1)
 		return setSinkView(dest, value)
@@ -225,7 +226,7 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	// track of whether the dest was already populated. One caller
 	// (if local) will set this; the losers will not. The common
 	// case will likely be one caller.
-	//从集群或者本地中去获取
+	//从集群中去获取,兜底的是数据源
 	destPopulated := false
 	value, destPopulated, err := g.load(ctx, key, dest)
 	if err != nil {
@@ -234,6 +235,7 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	if destPopulated {
 		return nil
 	}
+	//将value赋值给dest返回
 	return setSinkView(dest, value)
 }
 
@@ -297,7 +299,7 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
 	return
 }
 
-//getLocally- 从本地获取缓存
+//getLocally- 从数据源中获取
 func (g *Group) getLocally(ctx Context, key string, dest Sink) (ByteView, error) {
 	err := g.getter.Get(ctx, key, dest)
 	if err != nil {

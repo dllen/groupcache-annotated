@@ -39,6 +39,8 @@ type Group struct {
 // sure that only one execution is in-flight for a given key at a
 // time. If a duplicate comes in, the duplicate caller waits for the
 // original to complete and receives the same results.
+//只有一个客户端从perr或者数据源获取数据,
+//其他客户端阻塞,直到第一个客户端取得数据之后,所有客户端再返回,这个主要是通过sync.WaitGroup实现
 func (g *Group) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
 	g.mu.Lock()
 	if g.m == nil {
