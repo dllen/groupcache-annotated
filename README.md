@@ -1,7 +1,6 @@
 # groupcache-annotated
 
 ### lru
-![Lru image](doc/images/lru.png)
+* [lru算法](https://github.com/friendlyhank/groupcache-annotated/tree/master/lru)
 
-source:
     
