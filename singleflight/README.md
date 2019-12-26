@@ -7,4 +7,6 @@ singleflight会自动阻塞N-1个请求,只执行其中一个请求,去其他节
 发到达,只执行一次查询，所以并发查询效率很高。
 ![singleflight image](../doc/images/singleflight.png)
 
+
+
     
