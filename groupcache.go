@@ -149,7 +149,7 @@ type Group struct {
 	// (amongst its peers) is authoritative. That is, this cache
 	// contains keys which consistent hash on to this process's
 	// peer number.
-	mainCache cache
+	mainCache cache //本地缓存
 
 	// hotCache contains keys/values for which this peer is not
 	// authoritative (otherwise they would be in mainCache), but
@@ -159,7 +159,7 @@ type Group struct {
 	// network card could become the bottleneck on a popular key.
 	// This cache is used sparingly to maximize the total number
 	// of key/value pairs that can be stored globally.
-	hotCache cache
+	hotCache cache //集群的热点缓存
 
 	// loadGroup ensures that each key is only fetched once
 	// (either locally or remotely), regardless of the number of
@@ -323,6 +323,7 @@ func (g *Group) getFromPeer(ctx Context, peer ProtoGetter, key string) (ByteView
 	// TODO(bradfitz): use res.MinuteQps or something smart to
 	// conditionally populate hotCache.  For now just do it some
 	// percentage of the time.
+	//从远端存储热门数据,用rand
 	if rand.Intn(10) == 0 {
 		g.populateCache(key, value, &g.hotCache)
 	}

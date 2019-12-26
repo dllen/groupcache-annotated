@@ -191,6 +191,7 @@ var bufferPool = sync.Pool{
 	New: func() interface{} { return new(bytes.Buffer) },
 }
 
+//http 请求获取数据
 func (h *httpGetter) Get(context Context, in *pb.GetRequest, out *pb.GetResponse) error {
 	u := fmt.Sprintf(
 		"%v%v/%v",
