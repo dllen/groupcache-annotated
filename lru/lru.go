@@ -19,6 +19,10 @@ package lru
 
 import "container/list"
 
+/*
+ *利用链表和hash来实现的lru算法
+ */
+
 // Cache is an LRU cache. It is not safe for concurrent access.
 type Cache struct {
 	// MaxEntries is the maximum number of cache entries before
