@@ -23,6 +23,12 @@ import (
 	"strconv"
 )
 
+/*
+ *每个节点会生成多个虚拟节点,避免生成hash出现不均匀的问题,每个节点计算对应hash值
+ *当一个key根据相同的hash规则计算必然落在换上,根据顺时针的对应的节点
+ *通过map hash匹配出节点值
+ */
+
 type Hash func(data []byte) uint32
 
 type Map struct {

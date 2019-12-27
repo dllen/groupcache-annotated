@@ -21,6 +21,8 @@ import "container/list"
 
 /*
  *利用链表和hash来实现的lru算法
+ *添加或获取的时候，在map存储的同时(方便取数据),找到元素并把元素放到链表最前
+ *当达到设定的长度最大值的时候,每次添加会从尾部删除掉一个
  */
 
 // Cache is an LRU cache. It is not safe for concurrent access.
