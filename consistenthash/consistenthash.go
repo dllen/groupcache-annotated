@@ -33,7 +33,7 @@ type Hash func(data []byte) uint32
 
 type Map struct {
 	hash     Hash
-	replicas int
+	replicas int //虚拟节点数,对应peer
 	keys     []int // Sorted
 	hashMap  map[int]string
 }

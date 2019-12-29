@@ -239,6 +239,33 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	return setSinkView(dest, value)
 }
 
+// Set -自实现的缓存设置
+func (g *Group) Set(key string, sink Sink) error {
+	g.peersOnce.Do(g.initPeers)
+	bytes, err := sink.view()
+	if err != nil {
+		return err
+	}
+	g.populateCache(key, bytes, &g.mainCache)
+	return nil
+}
+
+// Remove -自实现缓存删除功能
+func (g *Group) Remove(key string) {
+	g.peersOnce.Do(g.initPeers)
+
+	g.mainCache.remove(key)
+	g.hotCache.remove(key)
+}
+
+// RemoveAll -自实现移除所有缓存
+func (g *Group) RemoveAll() {
+	g.peersOnce.Do(g.initPeers)
+
+	g.mainCache.removeAll()
+	g.hotCache.removeAll()
+}
+
 // load loads key either by invoking the getter locally or by sending it to another machine.
 func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPopulated bool, err error) {
 	g.Stats.Loads.Add(1)
@@ -271,6 +298,7 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
 		g.Stats.LoadsDeduped.Add(1)
 		var value ByteView
 		var err error
+		//从集群获取
 		if peer, ok := g.peers.PickPeer(key); ok {
 			value, err = g.getFromPeer(ctx, peer, key)
 			if err == nil {
@@ -283,6 +311,7 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
 			// probably boring (normal task movement), so not
 			// worth logging I imagine.
 		}
+		//从数据源中获取
 		value, err = g.getLocally(ctx, key, dest)
 		if err != nil {
 			g.Stats.LocalLoadErrs.Add(1)
@@ -453,6 +482,26 @@ func (c *cache) removeOldest() {
 	if c.lru != nil {
 		c.lru.RemoveOldest()
 	}
+}
+
+func (c *cache) remove(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.lru == nil {
+		return
+	}
+
+	c.lru.Remove(key)
+}
+
+func (c *cache) removeAll() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.lru == nil {
+		return
+	}
+
+	c.lru.Clear()
 }
 
 func (c *cache) bytes() int64 {
