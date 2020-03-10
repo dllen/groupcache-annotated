@@ -184,14 +184,14 @@ type flightGroup interface {
 //带原子性去统计缓存组 统计信息
 type Stats struct {
 	Gets           AtomicInt //一次获取缓存的请求 any Get request, including from peers
-	CacheHits      AtomicInt // either cache was good
-	PeerLoads      AtomicInt // either remote load or remote cache hit (not an error)
-	PeerErrors     AtomicInt
+	CacheHits      AtomicInt //本地缓存获取 either cache was good
+	PeerLoads      AtomicInt //远端缓存获取 either remote load or remote cache hit (not an error)
+	PeerErrors     AtomicInt //远端缓存获取错误
 	Loads          AtomicInt // (gets - cacheHits)
 	LoadsDeduped   AtomicInt // after singleflight
-	LocalLoads     AtomicInt // total good local loads
-	LocalLoadErrs  AtomicInt // total bad local loads
-	ServerRequests AtomicInt // gets that came over the network from peers
+	LocalLoads     AtomicInt //数据源 total good local loads
+	LocalLoadErrs  AtomicInt //数据源获取错误 total bad local loads
+	ServerRequests AtomicInt //网络请求数 gets that came over the network from peers
 }
 
 // Name returns the name of the group.
@@ -237,33 +237,6 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
 	}
 	//将value赋值给dest返回
 	return setSinkView(dest, value)
-}
-
-// Set -自实现的缓存设置
-func (g *Group) Set(key string, sink Sink) error {
-	g.peersOnce.Do(g.initPeers)
-	bytes, err := sink.view()
-	if err != nil {
-		return err
-	}
-	g.populateCache(key, bytes, &g.mainCache)
-	return nil
-}
-
-// Remove -自实现缓存删除功能
-func (g *Group) Remove(key string) {
-	g.peersOnce.Do(g.initPeers)
-
-	g.mainCache.remove(key)
-	g.hotCache.remove(key)
-}
-
-// RemoveAll -自实现移除所有缓存
-func (g *Group) RemoveAll() {
-	g.peersOnce.Do(g.initPeers)
-
-	g.mainCache.removeAll()
-	g.hotCache.removeAll()
 }
 
 // load loads key either by invoking the getter locally or by sending it to another machine.
